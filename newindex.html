@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red de Recursos | Panel</title>
+    <!-- Cargamos Tailwind para el diseño y React para la funcionalidad -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- IMPORTANTE: PEGA TU URL DE GOOGLE ENTRE LAS COMILLAS ---
+        const API_URL = "https://script.google.com/macros/s/AKfycby2gx98de1w3wqdn4wroCe-nl9istqFB7i0uqjC3IuxOkm8M2i-kNG4QJoZ9_49y6Th5A/exec";
+
+        const App = () => {
+            const [resources, setResources] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                const loadData = async () => {
+                    if (API_URL.includes("TU_URL")) {
+                        setError("Falta configurar la URL del script de Google.");
+                        setLoading(false);
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(API_URL);
+                        const data = await response.json();
+                        setResources(data);
+                        setLoading(false);
+                    } catch (err) {
+                        setError("No se pudo conectar con el Excel. Revisa que el script esté desplegado como 'Cualquier persona'.");
+                        setLoading(false);
+                    }
+                };
+                loadData();
+            }, []);
+
+            if (loading) return (
+                <div className="flex flex-col items-center justify-center min-h-screen">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                    <p className="text-slate-500 font-medium">Cargando Red de Recursos...</p>
+                </div>
+            );
+
+            return (
+                <div className="max-w-7xl mx-auto px-4 py-12">
+                    <header className="text-center mb-16">
+                        <h1 className="text-5xl font-black tracking-tight text-slate-900 mb-4">Red de Recursos</h1>
+                        <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
+                            Consulta las últimas ofertas, cursos y recursos actualizados desde nuestra base de datos centralizada.
+                        </p>
+                    </header>
+
+                    {error ? (
+                        <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-3xl text-center max-w-md mx-auto">
+                            <p className="font-bold">{error}</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {resources.map((res, i) => (
+                                <div key={i} className="bg-white rounded-[2.5rem] p-8 border border-slate-200 card-hover transition-all fade-in flex flex-col h-full">
+                                    <div className="mb-6 flex justify-between items-start">
+                                        <span className="bg-blue-50 text-blue-700 text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full">
+                                            {res.categoria || "General"}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-3 leading-tight text-slate-800">{res.titulo}</h3>
+                                    <p className="text-sm font-bold text-slate-400 mb-4 flex items-center gap-2">
+                                        {res.entidad}
+                                    </p>
+                                    <p className="text-slate-600 leading-relaxed mb-8 flex-1 line-clamp-4">
+                                        {res.descripcion}
+                                    </p>
+                                    <a 
+                                        href={res.enlace} 
+                                        target="_blank" 
+                                        className="bg-slate-900 text-white text-center py-4 rounded-2xl font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-slate-200"
+                                    >
+                                        Más información
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
