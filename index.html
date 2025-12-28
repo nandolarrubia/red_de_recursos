@@ -3,163 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Red de Recursos - GitHub</title>
-    <!-- Tailwind CSS -->
+    <title>Red de Recursos</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React y ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
     <style>
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-shadow { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans">
-    
+<body>
     <div id="root"></div>
 
     <script type="text/babel">
-        // CONFIGURACIÓN: Pega aquí la URL de ejecución de tu Google Apps Script
+        const { useState, useEffect, useMemo } = React;
+
+        // URL de tu Web App de Google Apps Script
         const API_URL = "https://script.google.com/macros/s/AKfycby2gx98de1w3wqdn4wroCe-nl9istqFB7i0uqjC3IuxOkm8M2i-kNG4QJoZ9_49y6Th5A/exec";
 
-        const { useState, useEffect, useMemo } = React;
+        // Iconos Inline SVG
+        const Icons = {
+            Search: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>,
+            Plus: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>,
+            Close: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>,
+            External: () => <svg className="w-4 h-4 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        };
 
         const App = () => {
             const [resources, setResources] = useState([]);
             const [loading, setLoading] = useState(true);
-            const [error, setError] = useState(null);
-            const [search, setSearch] = useState("");
-            const [category, setCategory] = useState("Todas");
+            const [searchTerm, setSearchTerm] = useState('');
+            const [activeCategory, setActiveCategory] = useState('Todos');
             const [selectedResource, setSelectedResource] = useState(null);
+            const [isPublishing, setIsPublishing] = useState(false);
+            
+            // Estado del formulario
+            const [formData, setFormData] = useState({
+                titulo: '', entidad: '', categoria: '', descripcion: '', enlace: '', imagenUrl: ''
+            });
 
             useEffect(() => {
-                const loadData = async () => {
-                    if (API_URL.includes("TU_URL_DE_GOOGLE")) {
-                        setError("Por favor, configura la URL de la API de Google Apps Script en el código.");
-                        setLoading(false);
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch(API_URL);
-                        const data = await response.json();
-                        if (data.error) throw new Error(data.error);
-                        setResources(data);
-                    } catch (err) {
-                        setError("Error al cargar los datos. Asegúrate de haber publicado la aplicación web en Google como 'Cualquiera'.");
-                    } finally {
-                        setLoading(false);
-                    }
-                };
-                loadData();
+                fetchResources();
             }, []);
 
-            const categories = useMemo(() => ["Todas", ...new Set(resources.map(r => r.categoria))].filter(Boolean), [resources]);
+            const fetchResources = async () => {
+                try {
+                    setLoading(true);
+                    const response = await fetch(API_URL);
+                    const data = await response.json();
+                    setResources(Array.isArray(data) ? data : []);
+                } catch (err) {
+                    console.error("Error cargando recursos:", err);
+                } finally {
+                    setLoading(false);
+                }
+            };
 
-            const filteredResources = useMemo(() => {
-                return resources.filter(r => {
-                    const matchesSearch = (r.titulo + r.entidad + r.descripcion).toLowerCase().includes(search.toLowerCase());
-                    const matchesCategory = category === "Todas" || r.categoria === category;
-                    return matchesSearch && matchesCategory;
-                });
-            }, [resources, search, category]);
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                // Aquí iría la lógica de envío a Google Apps Script
+                console.log("Datos a enviar:", formData);
+                setIsPublishing(false);
+                setFormData({ titulo: '', entidad: '', categoria: '', descripcion: '', enlace: '', imagenUrl: '' });
+                // Simulamos refresco
+                fetchResources();
+            };
 
-            if (loading) return (
-                <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
-                    <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-                    <p className="text-slate-500 font-medium animate-pulse">Cargando recursos del sistema...</p>
-                </div>
-            );
+            const categories = useMemo(() => {
+                const uniqueCats = [...new Set(resources.map(r => r.categoria))].filter(Boolean);
+                return ['Todos', ...uniqueCats.sort()];
+            }, [resources]);
 
-            if (error) return (
-                <div className="min-h-screen flex items-center justify-center p-6 text-center">
-                    <div className="max-w-md bg-white p-8 rounded-3xl shadow-xl border border-red-100">
-                        <div className="text-red-500 mb-4 font-bold text-4xl">!</div>
-                        <h2 className="text-xl font-bold mb-2">Error de Configuración</h2>
-                        <p className="text-slate-600 mb-6">{error}</p>
-                        <button onClick={() => window.location.reload()} className="bg-slate-800 text-white px-6 py-2 rounded-xl">Reintentar</button>
-                    </div>
-                </div>
-            );
+            const filtered = resources.filter(r => {
+                const matchesText = (r.titulo + r.entidad + r.descripcion).toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesCat = activeCategory === 'Todos' || r.categoria === activeCategory;
+                return matchesText && matchesCat;
+            });
 
             return (
-                <div className="min-h-screen">
-                    {/* Header */}
-                    <header className="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-4 md:py-6">
-                        <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-4 items-center justify-between">
-                            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Red de Recursos</h1>
-                            
-                            <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
-                                <div className="relative">
-                                    <input 
-                                        type="text" 
-                                        placeholder="Buscar por nombre o entidad..." 
-                                        className="w-full sm:w-80 pl-4 pr-10 py-2.5 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                    />
-                                </div>
+                <div className="min-h-screen pb-12">
+                    {/* Navegación Principal */}
+                    <nav className="bg-white border-b sticky top-0 z-50">
+                        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.reload()}>
+                                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold">R</div>
+                                <span className="font-bold text-slate-800 text-lg hidden sm:block tracking-tight">RedRecursos</span>
                             </div>
-                        </div>
-                    </header>
 
-                    {/* Categorías */}
-                    <div className="bg-white border-b border-slate-100 overflow-x-auto no-scrollbar py-3">
-                        <div className="max-w-6xl mx-auto px-4 flex gap-2">
-                            {categories.map(cat => (
-                                <button
-                                    key={cat}
-                                    onClick={() => setCategory(cat)}
-                                    className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${category === cat ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                                >
-                                    {cat}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                            <div className="flex-1 max-w-md relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Icons.Search /></span>
+                                <input 
+                                    type="text" 
+                                    className="w-full bg-slate-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 rounded-lg py-2 pl-10 pr-4 transition-all outline-none text-sm"
+                                    placeholder="Buscar..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
 
-                    {/* Grid de Contenido */}
-                    <main className="max-w-6xl mx-auto px-4 py-10">
-                        {filteredResources.length === 0 ? (
-                            <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
-                                <p className="text-slate-400">No se encontraron resultados para tu búsqueda.</p>
+                            <button 
+                                onClick={() => setIsPublishing(true)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all shadow-sm"
+                            >
+                                <Icons.Plus /> <span className="hidden md:inline">Publicar</span>
+                            </button>
+                        </div>
+                        
+                        {/* Filtros de Categoría */}
+                        {!loading && resources.length > 0 && (
+                            <div className="max-w-6xl mx-auto px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar border-t border-slate-50">
+                                {categories.map(cat => (
+                                    <button 
+                                        key={cat}
+                                        onClick={() => setActiveCategory(cat)}
+                                        className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
+                                            activeCategory === cat 
+                                            ? 'bg-slate-800 text-white' 
+                                            : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-300'
+                                        }`}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </nav>
+
+                    {/* Contenido */}
+                    <main className="max-w-6xl mx-auto px-4 mt-8">
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-32 space-y-4">
+                                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                <p className="text-slate-500 font-medium">Sincronizando recursos...</p>
+                            </div>
+                        ) : filtered.length === 0 ? (
+                            <div className="text-center py-32 bg-white rounded-3xl border-2 border-dashed border-slate-200">
+                                <p className="text-slate-400">No hay recursos disponibles que coincidan con tu búsqueda.</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {filteredResources.map(res => (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {filtered.map(res => (
                                     <div 
                                         key={res.id} 
                                         onClick={() => setSelectedResource(res)}
-                                        className="bg-white rounded-3xl border border-slate-200 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer fade-in flex flex-col h-full"
+                                        className="group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-blue-400 transition-all cursor-pointer card-shadow"
                                     >
-                                        <div className="h-44 bg-slate-200 relative overflow-hidden">
-                                            {res.imagenUrl ? (
-                                                <img src={res.imagenUrl} alt={res.titulo} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <div className="flex items-center justify-center h-full text-slate-400 font-bold uppercase tracking-widest text-xs">Sin Imagen</div>
-                                            )}
-                                            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-bold uppercase text-slate-700 shadow-sm">{res.categoria}</div>
+                                        <div className="aspect-[16/10] bg-slate-100 overflow-hidden">
+                                            <img src={res.imagenUrl || 'https://via.placeholder.com/400x250?text=Recurso'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={res.titulo} />
                                         </div>
-                                        <div className="p-6 flex flex-col flex-1">
-                                            <h3 className="text-lg font-bold text-slate-900 mb-1 leading-snug line-clamp-2">{res.titulo}</h3>
-                                            <p className="text-blue-600 font-medium text-sm mb-3">{res.entidad}</p>
-                                            <p className="text-slate-600 text-sm line-clamp-3 mb-6 flex-1">{res.descripcion}</p>
-                                            
-                                            <div className="pt-4 border-t border-slate-50 flex items-center justify-between text-slate-400">
-                                                <span className="text-xs font-semibold uppercase tracking-tighter">Más info →</span>
-                                                <div className="flex gap-2">
-                                                    {res.entityPhone && <div className="w-2 h-2 rounded-full bg-green-400"></div>}
-                                                    {res.entityEmail && <div className="w-2 h-2 rounded-full bg-blue-400"></div>}
-                                                </div>
+                                        <div className="p-5">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 px-2 py-0.5 bg-blue-50 rounded">{res.categoria || 'General'}</span>
+                                                <span className="text-[10px] font-medium text-slate-400">{res.entidad}</span>
                                             </div>
+                                            <h3 className="font-bold text-slate-800 leading-tight line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">{res.titulo}</h3>
+                                            <p className="text-sm text-slate-500 line-clamp-2">{res.descripcion}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -167,41 +168,63 @@
                         )}
                     </main>
 
-                    {/* Modal de Detalle */}
+                    {/* Modal Detalle */}
                     {selectedResource && (
-                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedResource(null)}>
-                            <div className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-                                <div className="h-64 sm:h-80 relative">
-                                    {selectedResource.imagenUrl && <img src={selectedResource.imagenUrl} className="w-full h-full object-cover" />}
-                                    <button onClick={() => setSelectedResource(null)} className="absolute top-6 right-6 bg-black/20 hover:bg-black/40 text-white p-2 rounded-full transition-colors">✕</button>
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+                            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setSelectedResource(null)}></div>
+                            <div className="relative bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+                                <button onClick={() => setSelectedResource(null)} className="absolute top-4 right-4 p-2 bg-white/80 hover:bg-white rounded-full shadow-md z-10"><Icons.Close /></button>
+                                <div className="max-h-[85vh] overflow-y-auto">
+                                    <img src={selectedResource.imagenUrl} className="w-full aspect-video object-cover" />
+                                    <div className="p-8">
+                                        <div className="flex gap-2 mb-4">
+                                            <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-black uppercase rounded-full">{selectedResource.categoria}</span>
+                                            <span className="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase rounded-full">{selectedResource.entidad}</span>
+                                        </div>
+                                        <h2 className="text-3xl font-bold text-slate-900 mb-4">{selectedResource.titulo}</h2>
+                                        <div className="prose prose-slate max-w-none">
+                                            <p className="text-slate-600 leading-relaxed text-lg whitespace-pre-wrap">{selectedResource.descripcion}</p>
+                                        </div>
+                                        <div className="mt-8 pt-8 border-t border-slate-100">
+                                            <a href={selectedResource.enlace} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors">
+                                                Acceder al Recurso <Icons.External />
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="p-8 sm:p-10">
-                                    <div className="text-blue-600 font-bold text-xs uppercase mb-2 tracking-widest">{selectedResource.categoria}</div>
-                                    <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">{selectedResource.titulo}</h2>
-                                    <div className="text-lg font-semibold text-slate-700 mb-6">{selectedResource.entidad}</div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Modal Publicar */}
+                    {isPublishing && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsPublishing(false)}></div>
+                            <div className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+                                <div className="p-6 sm:p-8">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h2 className="text-xl font-bold text-slate-800">Publicar Nuevo Recurso</h2>
+                                        <button onClick={() => setIsPublishing(false)} className="text-slate-400 hover:text-slate-600"><Icons.Close /></button>
+                                    </div>
                                     
-                                    <div className="bg-slate-50 p-6 rounded-3xl mb-8 leading-relaxed text-slate-600">
-                                        {selectedResource.descripcion || "Sin descripción disponible."}
-                                    </div>
+                                    <form onSubmit={handleSubmit} className="space-y-4">
+                                        <input required className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Título del recurso" value={formData.titulo} onChange={e => setFormData({...formData, titulo: e.target.value})} />
+                                        
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <input required className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Entidad" value={formData.entidad} onChange={e => setFormData({...formData, entidad: e.target.value})} />
+                                            <input required className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Categoría" value={formData.categoria} onChange={e => setFormData({...formData, categoria: e.target.value})} />
+                                        </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-                                        {selectedResource.entityPhone && (
-                                            <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl">
-                                                <div className="bg-white p-2 rounded-lg shadow-sm">📞</div>
-                                                <div className="text-sm font-bold truncate">{selectedResource.entityPhone}</div>
-                                            </div>
-                                        )}
-                                        {selectedResource.entityEmail && (
-                                            <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl">
-                                                <div className="bg-white p-2 rounded-lg shadow-sm">✉️</div>
-                                                <div className="text-sm font-bold truncate">{selectedResource.entityEmail}</div>
-                                            </div>
-                                        )}
-                                    </div>
+                                        <textarea required rows="3" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Descripción detallada..." value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})}></textarea>
+                                        
+                                        <input type="url" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enlace oficial (https://...)" value={formData.enlace} onChange={e => setFormData({...formData, enlace: e.target.value})} />
+                                        
+                                        <input type="url" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="URL de imagen opcional" value={formData.imagenUrl} onChange={e => setFormData({...formData, imagenUrl: e.target.value})} />
 
-                                    <div className="flex gap-4">
-                                        <a href={selectedResource.enlace} target="_blank" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold text-center transition-all shadow-lg shadow-blue-200">Visitar Enlace Externo</a>
-                                    </div>
+                                        <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-100 mt-2">
+                                            Enviar para Revisión
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
