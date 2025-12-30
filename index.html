@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red de Recursos</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            line-height: 1.6;
+        }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
+        
+        /* Header */
+        .header { background: white; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 50; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header-content { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; height: 80px; }
+        .logo { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+        .logo-icon { width: 44px; height: 44px; background: #4f46e5; border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.25rem; }
+        .logo-text { font-weight: 800; font-size: 1.25rem; color: #0f172a; }
+        
+        /* Search */
+        .search-wrapper { flex: 1; max-width: 600px; position: relative; }
+        .search-input { 
+            width: 100%; 
+            background: #f1f5f9; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 1rem; 
+            padding: 0.75rem 1rem 0.75rem 3rem; 
+            font-size: 0.875rem;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .search-input:focus { background: white; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+        .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        
+        /* Button */
+        .btn { 
+            background: #1e293b; 
+            color: white; 
+            padding: 0.75rem 1.25rem; 
+            border-radius: 1rem; 
+            font-weight: 700; 
+            font-size: 0.875rem; 
+            border: none; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #0f172a; }
+        
+        /* Categories */
+        .categories { 
+            display: flex; 
+            gap: 0.75rem; 
+            overflow-x: auto; 
+            padding: 1rem 0; 
+            border-top: 1px solid #f1f5f9;
+            scrollbar-width: none;
+        }
+        .categories::-webkit-scrollbar { display: none; }
+        .category-btn { 
+            padding: 0.5rem 1.25rem; 
+            border-radius: 0.75rem; 
+            font-size: 0.75rem; 
+            font-weight: 700; 
+            white-space: nowrap; 
+            border: 1px solid;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .category-btn.active { background: #4f46e5; color: white; border-color: #4f46e5; }
+        
+        /* Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; padding: 2.5rem 0; }
+        
+        /* Card */
+        .card { 
+            background: white; 
+            border-radius: 2rem; 
+            border: 1px solid #e2e8f0; 
+            overflow: hidden; 
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        .card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); }
+        .card-image { 
+            height: 200px; 
+            background: white; 
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .card-image img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; 
+            border-radius: 0.75rem;
+            transition: transform 0.5s;
+        }
+        .card:hover .card-image img { transform: scale(1.05); }
+        .card-content { padding: 1.75rem; display: flex; flex-direction: column; flex: 1; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .card-badge { 
+            padding: 0.25rem 0.625rem; 
+            border-radius: 0.5rem; 
+            font-size: 0.625rem; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            border: 1px solid;
+        }
+        .card-date { font-size: 0.625rem; font-weight: 700; color: #94a3b8; display: flex; align-items: center; gap: 0.25rem; }
+        .card-title { font-size: 1.25rem; font-weight: 800; color: #0f172a; line-height: 1.4; margin-bottom: 0.5rem; }
+        .card:hover .card-title { color: #4f46e5; }
+        .card-entity { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em; }
+        .card-desc { font-size: 0.875rem; color: #64748b; line-height: 1.6; margin-bottom: 1.5rem; font-weight: 500; flex: 1; }
+        .card-footer { padding-top: 1.25rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .card-link { font-size: 0.75rem; font-weight: 700; color: #4f46e5; text-transform: uppercase; display: flex; align-items: center; gap: 0.375rem; }
+        
+        /* Modal */
+        .modal-overlay { 
+            position: fixed; 
+            inset: 0; 
+            z-index: 100; 
+            background: rgba(15,23,42,0.4); 
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        .modal-content { 
+            background: white; 
+            width: 100%; 
+            height: 100%; 
+            overflow-y: auto;
+            position: relative;
+        }
+        .modal-header { 
+            position: sticky; 
+            top: 0; 
+            z-index: 20; 
+            background: rgba(255,255,255,0.95); 
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #f1f5f9;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-close { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            border: none; 
+            background: #f1f5f9; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .modal-close:hover { background: #e2e8f0; }
+        .modal-body { padding: 2rem 3rem; }
+        .modal-layout { display: flex; gap: 3rem; flex-direction: column; }
+        .modal-image { 
+            width: 100%; 
+            aspect-ratio: 1; 
+            border-radius: 1.5rem; 
+            overflow: hidden; 
+            background: #f8fafc; 
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .modal-image img { width: 100%; height: 100%; object-fit: contain; }
+        .modal-title { font-size: 2.5rem; font-weight: 800; color: #0f172a; line-height: 1.2; margin-bottom: 1rem; }
+        .modal-entity { font-size: 1.125rem; font-weight: 700; color: #4f46e5; text-transform: uppercase; margin-bottom: 2rem; letter-spacing: 0.05em; }
+        .section-title { font-size: 0.875rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; }
+        .description { font-size: 1.125rem; line-height: 1.8; color: #475569; font-weight: 500; white-space: pre-wrap; margin-bottom: 2.5rem; }
+        .attachments { background: #f8fafc; border-radius: 1.5rem; padding: 1.5rem; border: 1px solid #e2e8f0; margin-bottom: 2.5rem; }
+        .attachment-link { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            padding: 1rem 1.5rem; 
+            background: white; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 1rem; 
+            text-decoration: none;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        .attachment-link:hover { border-color: #4f46e5; color: #4f46e5; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .contact-box { background: #eef2ff; border-radius: 1.5rem; padding: 2rem; border: 1px solid #c7d2fe; }
+        .contact-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+        .contact-item { display: flex; align-items: center; gap: 0.75rem; }
+        .contact-link { 
+            display: flex; 
+            align-items: center; 
+            padding: 0.75rem 1.25rem; 
+            background: white; 
+            border: 1px solid #c7d2fe; 
+            border-radius: 0.75rem;
+            color: #4338ca;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .contact-link:hover { background: #4f46e5; color: white; border-color: #4f46e5; }
+        .btn-primary { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            width: 100%; 
+            padding: 1.25rem; 
+            background: #1e293b; 
+            color: white; 
+            border-radius: 1.5rem; 
+            font-weight: 800; 
+            text-decoration: none;
+            margin-top: 2.5rem;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background: #0f172a; }
+        
+        /* Loading */
+        .loading { display: flex; justify-content: center; align-items: center; padding: 10rem 0; }
+        .spinner { 
+            width: 32px; 
+            height: 32px; 
+            border: 4px solid #4f46e5; 
+            border-top-color: transparent; 
+            border-radius: 50%; 
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Utility */
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Responsive */
+        @media (min-width: 640px) {
+            .logo-text { display: block; }
+        }
+        @media (min-width: 768px) {
+            .modal-content { width: auto; height: auto; max-height: 92vh; max-width: 1200px; border-radius: 2.5rem; }
+            .modal-layout { flex-direction: row; }
+            .modal-image { width: 33.333%; }
+            .contact-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .logo-text { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        const API_URL = "https://script.google.com/macros/s/AKfycby2gx98de1w3wqdn4wroCe-nl9istqFB7i0uqjC3IuxOkm8M2i-kNG4QJoZ9_49y6Th5A/exec";
+        const FORM_URL = "https://forms.gle/R1nVsAFn4gLnX57D6";
+
+        const Icon = ({d, size = 20}) => (
+            <svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d={d}/>
+            </svg>
+        );
+
+        const getCategoryColor = (cat) => {
+            const colors = [
+                { bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
+                { bg: '#fef3c7', text: '#92400e', border: '#fde68a' },
+                { bg: '#ffe4e6', text: '#9f1239', border: '#fecdd3' },
+                { bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+                { bg: '#ede9fe', text: '#5b21b6', border: '#ddd6fe' },
+                { bg: '#fed7aa', text: '#9a3412', border: '#fdba74' }
+            ];
+            let hash = 0;
+            for (let i = 0; i < (cat || '').length; i++) hash = cat.charCodeAt(i) + ((hash << 5) - hash);
+            return colors[Math.abs(hash) % colors.length];
+        };
+
+        const App = () => {
+            const [resources, setResources] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [activeCategory, setActiveCategory] = useState('Todos');
+            const [selectedResource, setSelectedResource] = useState(null);
+
+            useEffect(() => {
+                fetch(API_URL)
+                    .then(r => r.json())
+                    .then(data => {
+                        const sorted = (Array.isArray(data) ? data : []).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                        setResources(sorted);
+                        setLoading(false);
+                    })
+                    .catch(() => setLoading(false));
+            }, []);
+
+            const categories = useMemo(() => {
+                const unique = [...new Set(resources.map(r => r.categoria))].filter(Boolean).sort();
+                return ['Todos', ...unique];
+            }, [resources]);
+
+            const filtered = resources.filter(r => {
+                const text = (r.titulo + r.entidad + r.descripcion).toLowerCase();
+                const matchText = text.includes(searchTerm.toLowerCase());
+                const matchCat = activeCategory === 'Todos' || r.categoria === activeCategory;
+                return matchText && matchCat;
+            });
+
+            const formatDate = (iso) => {
+                if (!iso) return '';
+                return new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso));
+            };
+
+            if (loading) return <div className="loading"><div className="spinner"></div></div>;
+
+            return (
+                <>
+                    <header className="header">
+                        <div className="container">
+                            <div className="header-content">
+                                <div className="logo" onClick={() => window.location.reload()}>
+                                    <div className="logo-icon">R</div>
+                                    <h1 className="logo-text">Red de Recursos</h1>
+                                </div>
+
+                                <div className="search-wrapper">
+                                    <div className="search-icon">
+                                        <Icon d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </div>
+                                    <input 
+                                        type="text" 
+                                        className="search-input"
+                                        placeholder="Buscar por título o entidad..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
+
+                                <a href={FORM_URL} target="_blank" className="btn">
+                                    <Icon d="M12 4v16m8-8H4" size={20} />
+                                    <span style={{display: window.innerWidth < 768 ? 'none' : 'inline'}}>Publicar</span>
+                                </a>
+                            </div>
+
+                            <div className="categories">
+                                {categories.map(cat => {
+                                    const isActive = activeCategory === cat;
+                                    const color = getCategoryColor(cat);
+                                    return (
+                                        <button 
+                                            key={cat}
+                                            onClick={() => setActiveCategory(cat)}
+                                            className={`category-btn ${isActive ? 'active' : ''}`}
+                                            style={!isActive ? { background: color.bg, color: color.text, borderColor: color.border } : {}}
+                                        >
+                                            {cat}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="container">
+                        <div className="grid">
+                            {filtered.map(res => {
+                                const color = getCategoryColor(res.categoria);
+                                return (
+                                    <div key={res.id} className="card" onClick={() => setSelectedResource(res)}>
+                                        <div className="card-image">
+                                            <img src={res.imagenUrl || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f1f5f9" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%2394a3b8" font-size="16" font-family="system-ui"%3ERecurso%3C/text%3E%3C/svg%3E'} alt={res.titulo} />
+                                        </div>
+                                        <div className="card-content">
+                                            <div className="card-header">
+                                                <span className="card-badge" style={{ background: color.bg, color: color.text, borderColor: color.border }}>
+                                                    {res.categoria}
+                                                </span>
+                                                <span className="card-date">
+                                                    <Icon d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" size={12} />
+                                                    {formatDate(res.timestamp)}
+                                                </span>
+                                            </div>
+                                            <h3 className="card-title line-clamp-2">{res.titulo}</h3>
+                                            <p className="card-entity">{res.entidad}</p>
+                                            <p className="card-desc line-clamp-3">{res.descripcion}</p>
+                                            <div className="card-footer">
+                                                <span className="card-link">
+                                                    Ver detalles 
+                                                    <Icon d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" size={14} />
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </main>
+
+                    {selectedResource && (
+                        <div className="modal-overlay" onClick={() => setSelectedResource(null)}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <div className="modal-header">
+                                    <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+                                        <span className="card-badge" style={{ ...getCategoryColor(selectedResource.categoria), background: getCategoryColor(selectedResource.categoria).bg, color: getCategoryColor(selectedResource.categoria).text, borderColor: getCategoryColor(selectedResource.categoria).border }}>
+                                            {selectedResource.categoria}
+                                        </span>
+                                        <span style={{fontSize: '0.6875rem', fontWeight: 700, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem'}}>
+                                            <Icon d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" size={12} />
+                                            {formatDate(selectedResource.timestamp)}
+                                        </span>
+                                    </div>
+                                    <button className="modal-close" onClick={() => setSelectedResource(null)}>
+                                        <Icon d="M6 18L18 6M6 6l12 12" size={24} />
+                                    </button>
+                                </div>
+
+                                <div className="modal-body">
+                                    <div className="modal-layout">
+                                        <div className="modal-image">
+                                            <img src={selectedResource.imagenUrl} alt={selectedResource.titulo} />
+                                        </div>
+
+                                        <div style={{flex: 1}}>
+                                            <h2 className="modal-title">{selectedResource.titulo}</h2>
+                                            <p className="modal-entity">{selectedResource.entidad}</p>
+
+                                            <h4 className="section-title">Descripción del recurso</h4>
+                                            <p className="description">{selectedResource.descripcion}</p>
+
+                                            {selectedResource.adjunto && (
+                                                <div className="attachments">
+                                                    <h4 className="section-title">Ficheros y Anexos</h4>
+                                                    <a href={selectedResource.adjunto} target="_blank" className="attachment-link">
+                                                        Descargar Documento Adjunto
+                                                        <Icon d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4m14-7l-5 5m0 0l-5-5m5 5V3" size={16} />
+                                                    </a>
+                                                </div>
+                                            )}
+
+                                            <div className="contact-box">
+                                                <h4 className="section-title">Información de Contacto</h4>
+                                                <div className="contact-grid">
+                                                    {selectedResource.entityPhone && (
+                                                        <a href={`tel:${selectedResource.entityPhone}`} className="contact-link">
+                                                            <Icon d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" size={16} />
+                                                            {selectedResource.entityPhone}
+                                                        </a>
+                                                    )}
+                                                    {selectedResource.entityEmail && (
+                                                        <a href={`mailto:${selectedResource.entityEmail}`} className="contact-link">
+                                                            <Icon d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" size={16} />
+                                                            {selectedResource.entityEmail}
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <a href={selectedResource.enlace} target="_blank" className="btn-primary">
+                                                Ir al sitio web del recurso
+                                                <Icon d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" size={20} />
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
