@@ -1,127 +1,214 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Red de Recursos</title>
 
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
 <style>
-body{font-family:system-ui;background:#f8fafc;margin:0}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:2rem;padding:2rem}
-.card{background:#fff;border-radius:1.5rem;border:1px solid #e5e7eb;cursor:pointer}
-.card img{width:100%;height:180px;object-fit:contain}
-.card-content{padding:1.25rem}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial;
+  background:#f8fafc;color:#0f172a;line-height:1.6
+}
+.container{max-width:1280px;margin:0 auto;padding:0 1rem}
 
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:50}
-.modal{background:#fff;width:100%;max-width:1100px;border-radius:1.5rem;overflow:hidden;max-height:90vh;overflow-y:auto}
+/* HEADER */
+.header{background:#fff;border-bottom:1px solid #e2e8f0;position:sticky;top:0;z-index:50}
+.header-content{display:flex;align-items:center;gap:1.5rem;height:80px}
+.logo{display:flex;align-items:center;gap:.75rem;cursor:pointer}
+.logo-icon{width:44px;height:44px;background:#4f46e5;border-radius:1rem;color:#fff;
+display:flex;align-items:center;justify-content:center;font-weight:800}
+.logo-text{font-weight:800;font-size:1.25rem}
+.search-wrapper{flex:1;max-width:600px;position:relative}
+.search-input{width:100%;padding:.75rem 1rem .75rem 3rem;border-radius:1rem;border:1px solid #cbd5e1;background:#f1f5f9;font-weight:600}
+.search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#94a3b8}
+.btn{background:#1e293b;color:#fff;padding:.75rem 1.25rem;border-radius:1rem;
+font-weight:700;border:none;text-decoration:none}
 
+/* CATEGORIES */
+.categories{display:flex;gap:.75rem;overflow-x:auto;padding:1rem 0}
+.category-btn{padding:.5rem 1.25rem;border-radius:.75rem;font-size:.75rem;
+font-weight:700;border:1px solid;cursor:pointer}
+.category-btn.active{background:#4f46e5;color:#fff;border-color:#4f46e5}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+gap:2rem;padding:2.5rem 0}
+
+/* CARD */
+.card{background:#fff;border-radius:2rem;border:1px solid #e2e8f0;overflow:hidden;cursor:pointer}
+.card-image{height:200px;display:flex;align-items:center;justify-content:center}
+.card-image img{width:100%;height:100%;object-fit:contain}
+.card-content{padding:1.75rem}
+.card-title{font-size:1.25rem;font-weight:800}
+.card-entity{text-transform:uppercase;font-size:.75rem;color:#64748b}
+.card-desc{color:#64748b;margin:1rem 0}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.4);
+backdrop-filter:blur(6px);display:flex;justify-content:center;align-items:center;z-index:100}
+.modal-content{background:#fff;width:100%;max-width:1100px;max-height:90vh;
+border-radius:2rem;overflow:hidden}
+.modal-header{display:flex;justify-content:space-between;align-items:center;
+padding:1.5rem 2rem;border-bottom:1px solid #e2e8f0}
+.modal-close{background:#f1f5f9;border:none;border-radius:50%;width:40px;height:40px;cursor:pointer}
 .modal-banner{height:320px;background:#f1f5f9}
 .modal-banner img{width:100%;height:100%;object-fit:cover}
-
-.modal-body{padding:2rem}
-.section{margin-bottom:2rem}
-.section h4{text-transform:uppercase;font-size:.75rem;color:#64748b;margin-bottom:.5rem}
-
-.attachments a, .contact a{
-display:block;
-padding:.75rem 1rem;
-border:1px solid #c7d2fe;
-border-radius:.75rem;
-margin-bottom:.5rem;
-text-decoration:none;
-color:#4338ca;
-font-weight:600;
+.modal-body{padding:2.5rem 3rem}
+.modal-title{font-size:2.25rem;font-weight:800}
+.modal-entity{text-transform:uppercase;color:#4f46e5;font-weight:700;margin-bottom:2rem}
+.section-title{font-size:.75rem;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:.5rem}
+.attachments a,.contact-link{
+display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;
+border:1px solid #c7d2fe;border-radius:.75rem;margin-bottom:.5rem;
+text-decoration:none;color:#4338ca;font-weight:700
 }
-
-.close{
-position:absolute;
-top:1rem;
-right:1rem;
-background:#fff;
-border:none;
-border-radius:50%;
-width:40px;
-height:40px;
-cursor:pointer;
-}
+.btn-primary{display:block;margin-top:2rem;padding:1.25rem;
+background:#1e293b;color:#fff;border-radius:1.5rem;
+font-weight:800;text-align:center;text-decoration:none}
 </style>
 </head>
 
 <body>
 <div id="root"></div>
 
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
 <script type="text/babel">
-const API_URL = "https://script.google.com/macros/s/AKfycby2gx98de1w3wqdn4wroCe-nl9istqFB7i0uqjC3IuxOkm8M2i-kNG4QJoZ9_49y6Th5A/exec";
+const {useState,useEffect,useMemo}=React;
+
+const API_URL="https://script.google.com/macros/s/AKfycby2gx98de1w3wqdn4wroCe-nl9istqFB7i0uqjC3IuxOkm8M2i-kNG4QJoZ9_49y6Th5A/exec";
+const FORM_URL="https://forms.gle/R1nVsAFn4gLnX57D6";
+
+const getCategoryColor=(cat)=>{
+const colors=[
+{bg:'#d1fae5',text:'#065f46',border:'#a7f3d0'},
+{bg:'#fef3c7',text:'#92400e',border:'#fde68a'},
+{bg:'#dbeafe',text:'#1e40af',border:'#bfdbfe'}
+];
+let h=0;for(let i=0;i<(cat||'').length;i++)h=cat.charCodeAt(i)+((h<<5)-h);
+return colors[Math.abs(h)%colors.length];
+};
 
 function App(){
-  const [data,setData]=React.useState([]);
-  const [selected,setSelected]=React.useState(null);
+const [resources,setResources]=useState([]);
+const [loading,setLoading]=useState(true);
+const [search,setSearch]=useState('');
+const [category,setCategory]=useState('Todos');
+const [selected,setSelected]=useState(null);
 
-  React.useEffect(()=>{
-    fetch(API_URL).then(r=>r.json()).then(setData);
-  },[]);
+useEffect(()=>{
+fetch(API_URL).then(r=>r.json()).then(d=>{
+setResources(Array.isArray(d)?d:[]);setLoading(false);
+});
+},[]);
 
-  return (
-    <>
-      <div className="grid">
-        {data.map(r=>(
-          <div className="card" key={r.id} onClick={()=>setSelected(r)}>
-            <img src={r.imagenUrl}/>
-            <div className="card-content">
-              <h3>{r.titulo}</h3>
-              <small>{r.entidad}</small>
-            </div>
-          </div>
-        ))}
-      </div>
+const categories=useMemo(()=>{
+const u=[...new Set(resources.map(r=>r.categoria))].filter(Boolean);
+return ['Todos',...u];
+},[resources]);
 
-      {selected && (
-        <div className="modal-overlay" onClick={()=>setSelected(null)}>
-          <div className="modal" onClick={e=>e.stopPropagation()}>
-            <button className="close" onClick={()=>setSelected(null)}>✕</button>
+const filtered=resources.filter(r=>{
+const t=(r.titulo+r.entidad+r.descripcion).toLowerCase();
+return t.includes(search.toLowerCase()) &&
+(category==='Todos'||r.categoria===category);
+});
 
-            <div className="modal-banner">
-              <img src={selected.imagenUrl}/>
-            </div>
+if(loading)return <p style={{padding:'5rem',textAlign:'center'}}>Cargando…</p>;
 
-            <div className="modal-body">
-              <h1>{selected.titulo}</h1>
-              <p><strong>{selected.entidad}</strong></p>
+return(
+<>
+<header className="header">
+<div className="container header-content">
+<div className="logo" onClick={()=>location.reload()}>
+<div className="logo-icon">R</div>
+<div className="logo-text">Red de Recursos</div>
+</div>
+<div className="search-wrapper">
+<span className="search-icon">🔍</span>
+<input className="search-input" placeholder="Buscar…" value={search}
+onChange={e=>setSearch(e.target.value)}/>
+</div>
+<a className="btn" href={FORM_URL} target="_blank">Publicar</a>
+</div>
+<div className="container categories">
+{categories.map(c=>{
+const col=getCategoryColor(c);
+return(
+<button key={c} className={`category-btn ${c===category?'active':''}`}
+style={c!==category?{background:col.bg,color:col.text,borderColor:col.border}:{}} 
+onClick={()=>setCategory(c)}>{c}</button>
+);
+})}
+</div>
+</header>
 
-              <div className="section">
-                <h4>Descripción</h4>
-                <p>{selected.descripcion}</p>
-              </div>
+<main className="container">
+<div className="grid">
+{filtered.map(r=>(
+<div className="card" key={r.id} onClick={()=>setSelected(r)}>
+<div className="card-image">
+<img src={r.imagenUrl||'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23f1f5f9" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" fill="%2394a3b8" dominant-baseline="middle" text-anchor="middle"%3ERecurso%3C/text%3E%3C/svg%3E'}/>
+</div>
+<div className="card-content">
+<h3 className="card-title">{r.titulo}</h3>
+<p className="card-entity">{r.entidad}</p>
+<p className="card-desc">{r.descripcion}</p>
+</div>
+</div>
+))}
+</div>
+</main>
 
-              {selected.adjuntos.length>0 && (
-                <div className="section attachments">
-                  <h4>Documentos adjuntos</h4>
-                  {selected.adjuntos.map(a=>(
-                    <a key={a.url} href={a.url} target="_blank">{a.nombre}</a>
-                  ))}
-                </div>
-              )}
+{selected&&(
+<div className="modal-overlay" onClick={()=>setSelected(null)}>
+<div className="modal-content" onClick={e=>e.stopPropagation()}>
+<div className="modal-header">
+<div>{selected.categoria}</div>
+<button className="modal-close" onClick={()=>setSelected(null)}>✕</button>
+</div>
+<div className="modal-banner">
+<img src={selected.imagenUrl}/>
+</div>
+<div className="modal-body">
+<h2 className="modal-title">{selected.titulo}</h2>
+<p className="modal-entity">{selected.entidad}</p>
 
-              <div className="section contact">
-                <h4>Contacto</h4>
-                {selected.entityPhone && <a href={`tel:${selected.entityPhone}`}>📞 {selected.entityPhone}</a>}
-                {selected.entityEmail && <a href={`mailto:${selected.entityEmail}`}>✉️ {selected.entityEmail}</a>}
-                {selected.entityAddress && <a>📍 {selected.entityAddress}</a>}
-              </div>
+<div>
+<div className="section-title">Descripción</div>
+<p>{selected.descripcion}</p>
+</div>
 
-              <a href={selected.enlace} target="_blank" className="attachments a">
-                Ir al sitio web del recurso
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
+{selected.adjuntos?.length>0&&(
+<div>
+<div className="section-title">Adjuntos</div>
+{selected.adjuntos.map((a,i)=>(
+<a key={i} href={a.url} target="_blank" className="attachments a">
+📎 {a.nombre}
+</a>
+))}
+</div>
+)}
+
+<div>
+<div className="section-title">Contacto</div>
+{selected.entityPhone&&<div className="contact-link">📞 {selected.entityPhone}</div>}
+{selected.entityEmail&&<div className="contact-link">✉️ {selected.entityEmail}</div>}
+{selected.entityAddress&&<div className="contact-link">📍 {selected.entityAddress}</div>}
+</div>
+
+<a href={selected.enlace} target="_blank" className="btn-primary">
+Ir al sitio web del recurso
+</a>
+</div>
+</div>
+</div>
+)}
+</>
+);
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
