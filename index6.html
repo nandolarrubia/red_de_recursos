@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red de Recursos - Catálogo</title>
+    <style>
+        /* Diseño Moderno y Responsivo */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            line-height: 1.6;
+        }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 1rem; }
+        
+        /* Cabecera y Buscador */
+        .header { background: white; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 50; }
+        .header-content { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; height: 80px; }
+        .logo { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; text-decoration: none; }
+        .logo-icon { width: 44px; height: 44px; background: #4f46e5; border-radius: 1rem; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.5rem; }
+        .logo-text { font-weight: 800; font-size: 1.25rem; color: #0f172a; }
+        
+        .search-wrapper { flex: 1; max-width: 600px; position: relative; }
+        .search-input { 
+            width: 100%; 
+            background: #f1f5f9; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 1rem; 
+            padding: 0.75rem 1rem 0.75rem 3rem; 
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: #4f46e5; }
+        .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        
+        /* Categorías */
+        .categories { display: flex; gap: 0.75rem; overflow-x: auto; padding: 1.5rem 0; scrollbar-width: none; }
+        .categories::-webkit-scrollbar { display: none; }
+        .category-btn { padding: 0.5rem 1.25rem; border-radius: 0.75rem; font-size: 0.75rem; font-weight: 700; white-space: nowrap; border: 1px solid #cbd5e1; cursor: pointer; background: white; transition: 0.2s; }
+        .category-btn.active { background: #4f46e5; color: white; border-color: #4f46e5; }
+        
+        /* Cuadrícula de Tarjetas */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; padding-bottom: 3rem; }
+        .card { background: white; border-radius: 1.5rem; border: 1px solid #e2e8f0; overflow: hidden; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .card-image { height: 220px; background: #f1f5f9; overflow: hidden; }
+        .card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .card:hover .card-image img { transform: scale(1.05); }
+        
+        .card-content { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+        .card-badge { align-self: flex-start; padding: 0.25rem 0.6rem; border-radius: 0.5rem; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; border: 1px solid #4f46e5; color: #4f46e5; margin-bottom: 0.75rem; }
+        .card-title { font-size: 1.125rem; font-weight: 800; margin-bottom: 0.5rem; color: #0f172a; line-height: 1.3; }
+        .card-entity { font-size: 0.8rem; font-weight: 600; color: #64748b; margin-bottom: 1rem; }
+        .card-desc { font-size: 0.875rem; color: #475569; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; flex: 1; }
+        
+        /* Modal Detalle */
+        .modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-content { background: white; width: 100%; max-width: 900px; max-height: 90vh; border-radius: 2rem; overflow-y: auto; position: relative; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .modal-body { padding: 2.5rem; }
+        .modal-close { position: absolute; top: 1.5rem; right: 1.5rem; background: #f1f5f9; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: bold; z-index: 10; }
+        
+        .modal-layout { display: grid; grid-template-columns: 1fr; gap: 2.5rem; }
+        @media (min-width: 768px) { .modal-layout { grid-template-columns: 350px 1fr; } }
+        
+        .modal-img-container { width: 100%; aspect-ratio: 1; border-radius: 1.5rem; overflow: hidden; background: #f1f5f9; border: 1px solid #e2e8f0; }
+        .modal-img-container img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .btn-primary { display: block; width: 100%; background: #4f46e5; color: white; text-align: center; padding: 1.1rem; border-radius: 1rem; text-decoration: none; font-weight: 700; margin-top: 1.5rem; transition: background 0.2s; }
+        .btn-primary:hover { background: #4338ca; }
+        
+        .adjuntos-section { margin-top: 2rem; border-top: 1px solid #f1f5f9; pt: 1.5rem; }
+        .adjunto-item { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.25rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.75rem; text-decoration: none; color: #4f46e5; font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem; transition: background 0.2s; }
+        .adjunto-item:hover { background: #f1f5f9; }
+
+        .loader { text-align: center; padding: 5rem 0; color: #64748b; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- React y Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // IMPORTANTE: Pon aquí la URL de tu script desplegado
+        const API_URL = "https://script.google.com/macros/s/AKfycbwBE06RKrsl_rhgMaOsz9Wi2TD8cFenLQXua3a2ixOQae_23gS5TjX_A8SM2QTixBbM4Q/exec";
+
+        const App = () => {
+            const [resources, setResources] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [activeCategory, setActiveCategory] = useState('Todos');
+            const [selected, setSelected] = useState(null);
+
+            useEffect(() => {
+                fetch(API_URL)
+                    .then(res => res.json())
+                    .then(data => {
+                        setResources(data);
+                        setLoading(false);
+                    })
+                    .catch(err => {
+                        console.error("Error cargando datos:", err);
+                        setLoading(false);
+                    });
+            }, []);
+
+            const categories = useMemo(() => {
+                const cats = [...new Set(resources.map(r => r.categoria))].filter(Boolean).sort();
+                return ['Todos', ...cats];
+            }, [resources]);
+
+            const filtered = resources.filter(r => {
+                const searchLower = searchTerm.toLowerCase();
+                const matchesSearch = 
+                    r.titulo.toLowerCase().includes(searchLower) || 
+                    r.entidad.toLowerCase().includes(searchLower) ||
+                    r.descripcion.toLowerCase().includes(searchLower);
+                const matchesCat = activeCategory === 'Todos' || r.categoria === activeCategory;
+                return matchesSearch && matchesCat;
+            });
+
+            if (loading) return (
+                <div className="loader">
+                    <p>Cargando red de recursos...</p>
+                </div>
+            );
+
+            return (
+                <div>
+                    <header className="header">
+                        <div className="container header-content">
+                            <div className="logo" onClick={() => { setSearchTerm(''); setActiveCategory('Todos'); }}>
+                                <div className="logo-icon">R</div>
+                                <span className="logo-text">Red de Recursos</span>
+                            </div>
+                            <div className="search-wrapper">
+                                <span className="search-icon">🔍</span>
+                                <input 
+                                    className="search-input" 
+                                    placeholder="¿Qué necesitas buscar?" 
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="container">
+                        <div className="categories">
+                            {categories.map(cat => (
+                                <button 
+                                    key={cat} 
+                                    className={`category-btn ${activeCategory === cat ? 'active' : ''}`}
+                                    onClick={() => setActiveCategory(cat)}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+
+                        {filtered.length > 0 ? (
+                            <div className="grid">
+                                {filtered.map(res => (
+                                    <div key={res.id} className="card" onClick={() => setSelected(res)}>
+                                        <div className="card-image">
+                                            <img 
+                                                src={res.imagenUrl || 'https://via.placeholder.com/600x400?text=Recurso+Sin+Imagen'} 
+                                                alt={res.titulo} 
+                                                onError={(e) => { e.target.src = 'https://via.placeholder.com/600x400?text=Error+al+cargar+imagen'; }} 
+                                            />
+                                        </div>
+                                        <div className="card-content">
+                                            <span className="card-badge">{res.categoria}</span>
+                                            <h3 className="card-title">{res.titulo}</h3>
+                                            <p className="card-entity">{res.entidad}</p>
+                                            <p className="card-desc">{res.descripcion}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="loader">No se encontraron recursos que coincidan con tu búsqueda.</div>
+                        )}
+                    </main>
+
+                    {selected && (
+                        <div className="modal-overlay" onClick={() => setSelected(null)}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                <button className="modal-close" onClick={() => setSelected(null)}>✕</button>
+                                <div className="modal-body">
+                                    <div className="modal-layout">
+                                        <div className="modal-img-container">
+                                            <img src={selected.imagenUrl || 'https://via.placeholder.com/600x600?text=Imagen'} alt={selected.titulo} />
+                                        </div>
+                                        <div>
+                                            <span className="card-badge">{selected.categoria}</span>
+                                            <h2 style={{fontSize: '1.8rem', marginBottom: '0.5rem', color: '#0f172a'}}>{selected.titulo}</h2>
+                                            <p style={{color: '#4f46e5', fontWeight: 700, marginBottom: '1.5rem', fontSize: '1.1rem'}}>{selected.entidad}</p>
+                                            
+                                            <div style={{marginBottom: '1.5rem'}}>
+                                                <h4 style={{textTransform: 'uppercase', fontSize: '0.7rem', color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '0.5rem'}}>Descripción del Recurso</h4>
+                                                <p style={{color: '#475569', fontSize: '0.95rem', whiteSpace: 'pre-line'}}>{selected.descripcion}</p>
+                                            </div>
+
+                                            {selected.adjuntos && selected.adjuntos.length > 0 && (
+                                                <div className="adjuntos-section">
+                                                    <h4 style={{textTransform: 'uppercase', fontSize: '0.7rem', color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '0.75rem'}}>Documentación Adicional</h4>
+                                                    {selected.adjuntos.map((adj, i) => (
+                                                        <a key={i} href={adj.url} target="_blank" className="adjunto-item">
+                                                            {adj.nombre} <span>📥</span>
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            <div style={{background: '#f8fafc', padding: '1.25rem', borderRadius: '1rem', marginTop: '1.5rem', border: '1px solid #f1f5f9'}}>
+                                                <h4 style={{fontSize: '0.8rem', fontWeight: 800, marginBottom: '0.5rem'}}>DATOS DE CONTACTO</h4>
+                                                {selected.entityAddress && <p style={{fontSize: '0.85rem', color: '#64748b'}}>📍 {selected.entityAddress}</p>}
+                                                {selected.entityPhone && <p style={{fontSize: '0.85rem', color: '#64748b'}}>📞 {selected.entityPhone}</p>}
+                                                {selected.entityEmail && <p style={{fontSize: '0.85rem', color: '#64748b'}}>✉️ {selected.entityEmail}</p>}
+                                            </div>
+
+                                            <a href={selected.enlace} target="_blank" className="btn-primary">Acceder al Recurso Web</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
